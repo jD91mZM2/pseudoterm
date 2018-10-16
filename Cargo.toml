@@ -1,0 +1,16 @@
+[package]
+name = "pseudoterm"
+version = "0.1.0"
+authors = ["jD91mZM2 <me@krake.one>"]
+description = "Low-level library for creating PTYs"
+readme = "README.md"
+license = "MIT"
+keywords = ["linux", "io", "terminal"]
+categories = ["os::unix-apis"]
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2.43"
+
+[target.'cfg(target_os = "redox")'.dependencies]
+redox_syscall = "0.1.40"
+redox_termios = "0.1.1"
