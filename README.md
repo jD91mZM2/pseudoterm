@@ -1,4 +1,4 @@
-# pseudoterm
+# pseudoterm [![Crates.io](https://img.shields.io/crates/v/pseudoterm.svg)](https://crates.io/crates/pseudoterm)
 
 Low-level library for creating PTYs and getting related properties. Aimed to be
 cross platform, and so far has Unix and Redox OS support.

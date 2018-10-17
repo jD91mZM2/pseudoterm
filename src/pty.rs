@@ -3,12 +3,13 @@ use std::{
     fs::File,
     io,
     os::unix::{
-        io::AsRawFd,
+        io::{AsRawFd, FromRawFd, IntoRawFd},
         process::CommandExt
     },
     process::{Command, Stdio}
 };
 
+/// Configurable options for opening PTYs
 #[derive(Clone, Debug, Default)]
 pub struct OpenptyOptions {
     pub size: Option<Winsize>,
@@ -46,15 +47,13 @@ pub fn openpty(options: &OpenptyOptions) -> io::Result<(File, File)> {
 }
 /// Prepare a `Command` with a slave as stdin/stdout/stderr
 pub fn prepare_cmd<'a>(slave: File, command: &'a mut Command) -> io::Result<&'a mut Command> {
-    let stdin = slave.try_clone()?;
-    let stdout = slave.try_clone()?;
-    let stderr = slave;
+    let fd = slave.into_raw_fd();
 
     Ok(
         command
-            .stdin(Stdio::from(stdin))
-            .stdout(Stdio::from(stdout))
-            .stderr(Stdio::from(stderr))
+            .stdin(unsafe { Stdio::from_raw_fd(fd) })
+            .stdout(unsafe { Stdio::from_raw_fd(fd) })
+            .stderr(unsafe { Stdio::from_raw_fd(fd) })
             .before_exec(sys::before_exec)
     )
 }
