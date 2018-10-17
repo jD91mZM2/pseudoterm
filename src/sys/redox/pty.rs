@@ -1,3 +1,4 @@
+use ::OpenptyOptions;
 use super::*;
 
 use std::{
@@ -6,8 +7,9 @@ use std::{
     io,
     os::unix::{
         ffi::OsStrExt,
+        fs::OpenOptionsExt,
         io::{AsRawFd, RawFd}
-    },
+    }
 };
 
 pub fn isatty(fd: RawFd) -> bool {
@@ -18,9 +20,13 @@ pub fn isatty(fd: RawFd) -> bool {
     false
 }
 
-pub fn openpty() -> io::Result<(File, File)> {
+pub fn openpty(options: &OpenptyOptions) -> io::Result<(File, File)> {
     // Open master
-    let master = File::create("pty:")?;
+    let mut openopts = OpenOptions::new();
+    if options.nonblock {
+        openopts.custom_flags(syscall::O_NONBLOCK as i32);
+    }
+    let master = openopts.read(true).write(true).open("pty:")?;
 
     // Open slave
     let mut path = [0; 128];

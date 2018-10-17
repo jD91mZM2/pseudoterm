@@ -1,6 +1,6 @@
 extern crate pseudoterm;
 
-use pseudoterm::{RawFile, Winsize};
+use pseudoterm::{OpenptyOptions, RawTerminal, Winsize};
 use std::{
     env,
     io::{self, prelude::*},
@@ -20,10 +20,13 @@ fn main() -> io::Result<()> {
     };
 
     // Step 1: Create PTY
-    let (mut master, slave) = pseudoterm::openpty(Some(Winsize {
-        rows: 32,
-        cols: 80
-    }))?;
+    let (mut master, slave) = pseudoterm::openpty(
+        &OpenptyOptions::new()
+            .with_size(Winsize {
+                cols: 80,
+                rows: 32,
+            })
+    )?;
 
     // Step 2: Launch command
     let mut child = pseudoterm::prepare_cmd(slave, &mut Command::new(cmd))?
@@ -52,7 +55,7 @@ fn main() -> io::Result<()> {
 
     let stdout = io::stdout();
     //let stdout = stdout.lock();
-    let mut stdout = RawFile::new_allow_failure(stdout);
+    let mut stdout = RawTerminal::new_allow_failure(stdout);
 
     let mut buf = [0; 1024];
     loop {

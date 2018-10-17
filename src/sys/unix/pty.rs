@@ -1,3 +1,4 @@
+use ::OpenptyOptions;
 use super::{*, libc::c_char};
 
 use std::{
@@ -14,13 +15,16 @@ pub fn isatty(fd: RawFd) -> bool {
     unsafe { libc::isatty(fd) != 0 }
 }
 
-pub fn openpty() -> io::Result<(File, File)> {
+pub fn openpty(options: &OpenptyOptions) -> io::Result<(File, File)> {
     unsafe {
-        let master = e(libc::posix_openpt(libc::O_RDWR))?;
+        let maybe_nonblock = if options.nonblock { libc::O_NONBLOCK } else { 0 };
+        // Open master
+        let master = e(libc::posix_openpt(libc::O_RDWR | maybe_nonblock))?;
         let master = File::from_raw_fd(master);
         e(libc::grantpt(master.as_raw_fd()))?;
         e(libc::unlockpt(master.as_raw_fd()))?;
 
+        // Open slave
         let mut name = [0u8; 32];
         e(libc::ptsname_r(master.as_raw_fd(), name.as_mut_ptr() as *mut c_char, name.len()))?;
 

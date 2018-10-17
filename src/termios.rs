@@ -9,10 +9,19 @@ use std::{
 #[derive(Clone, Copy)]
 pub struct Termios(sys::Termios);
 impl Termios {
+    /// Create a new instance from inner platform dependant data
+    pub fn new(inner: sys::Termios) -> Self {
+        Termios(inner)
+    }
     /// Get the inner termios representation.
     /// WARNING: Platform dependant.
     pub fn inner(&self) -> &sys::Termios {
         &self.0
+    }
+    /// Get a mutable reference to the inner termios representation.
+    /// WARNING: Platform dependant.
+    pub fn inner_mut(&mut self) -> &mut sys::Termios {
+        &mut self.0
     }
 
     /// Return the raw mode of this representation
@@ -42,11 +51,11 @@ impl TermiosSetter {
 }
 
 /// A structure that will automatically reset terminal mode when dropped
-pub struct RawFile<F: AsRawFd> {
+pub struct RawTerminal<F: AsRawFd> {
     file: F,
     restore: Option<(TermiosSetter, Termios)>
 }
-impl<F: AsRawFd> RawFile<F> {
+impl<F: AsRawFd> RawTerminal<F> {
     /// Switch the terminal to raw mode and return a wrapper that will exit raw
     /// mode automatically when dropped
     pub fn new(file: F) -> io::Result<Self> {
@@ -74,19 +83,19 @@ impl<F: AsRawFd> RawFile<F> {
         Self { file, restore }
     }
 }
-impl<F: AsRawFd> Deref for RawFile<F> {
+impl<F: AsRawFd> Deref for RawTerminal<F> {
     type Target = F;
 
     fn deref(&self) -> &Self::Target {
         &self.file
     }
 }
-impl<F: AsRawFd> DerefMut for RawFile<F> {
+impl<F: AsRawFd> DerefMut for RawTerminal<F> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.file
     }
 }
-impl<F: AsRawFd> Drop for RawFile<F> {
+impl<F: AsRawFd> Drop for RawTerminal<F> {
     fn drop(&mut self) {
         if let Some((ref mut setter, ref prev)) = self.restore {
             let _ = setter.set(prev);
