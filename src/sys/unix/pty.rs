@@ -1,5 +1,5 @@
 use ::OpenptyOptions;
-use super::{*, libc::c_char};
+use super::{*, libc::{c_char, c_ulong}};
 
 use std::{
     ffi::OsStr,
@@ -31,7 +31,7 @@ pub fn openpty(options: &OpenptyOptions) -> io::Result<(File, File)> {
         #[cfg(not(target_os = "macos"))]
         e(libc::ptsname_r(master.as_raw_fd(), name.as_mut_ptr() as *mut c_char, name.len()))?;
         #[cfg(target_os = "macos")]
-        e(libc::ioctl(master.as_raw_fd(), libc::TIOCPTYGNAME as u64, name.as_mut_ptr() as *mut c_char))?;
+        e(libc::ioctl(master.as_raw_fd(), libc::TIOCPTYGNAME as c_ulong, name.as_mut_ptr() as *mut c_char))?;
 
         let mut len = 0;
         while len < name.len() && name[len] != 0 {
@@ -50,7 +50,7 @@ pub fn before_exec() -> io::Result<()> {
         e(libc::setsid())?;
 
         // Make STDIN (which is our slave) the controlling terminal
-        e(libc::ioctl(0, libc::TIOCSCTTY, 1))?;
+        e(libc::ioctl(0, libc::TIOCSCTTY as c_ulong, 1))?;
     }
     Ok(())
 }
