@@ -1,6 +1,6 @@
 [package]
 name = "pseudoterm"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["jD91mZM2 <me@krake.one>"]
 description = "Low-level library for creating PTYs"
 readme = "README.md"
