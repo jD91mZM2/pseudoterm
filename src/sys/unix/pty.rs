@@ -28,11 +28,10 @@ pub fn openpty(options: &OpenptyOptions) -> io::Result<(File, File)> {
         // there's no length parameter to the TIOCPTYGNAME call on mac, instead it just assumes the
         // buffer is 128 bytes
         let mut name = [0u8; 128];
-        let name_ptr = name.as_mut_ptr() as *mut c_char;
-        #[cfg(not(target_os="macos"))]
-        e(libc::ptsname_r(master.as_raw_fd(), name_ptr, buf.len()))?;
-        #[cfg(target_os="macos")]
-        e(libc::ioctl(master.as_raw_fd(), libc::TIOCPTYGNAME as u64, name_ptr))?;
+        #[cfg(not(target_os = "macos"))]
+        e(libc::ptsname_r(master.as_raw_fd(), name.as_mut_ptr() as *mut c_char, name.len()))?;
+        #[cfg(target_os = "macos")]
+        e(libc::ioctl(master.as_raw_fd(), libc::TIOCPTYGNAME as u64, name.as_mut_ptr() as *mut c_char))?;
 
         let mut len = 0;
         while len < name.len() && name[len] != 0 {
