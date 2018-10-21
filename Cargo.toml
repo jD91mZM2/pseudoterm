@@ -3,6 +3,7 @@ name = "pseudoterm"
 version = "0.1.1"
 authors = ["jD91mZM2 <me@krake.one>"]
 description = "Low-level library for creating PTYs"
+repository = "https://gitlab.com/jD91mZM2/pseudoterm"
 readme = "README.md"
 license = "MIT"
 keywords = ["linux", "io", "terminal"]
